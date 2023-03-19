@@ -1,6 +1,13 @@
 #[doc(hidden)]
+#[cfg(not(feature = "bevy_app2"))]
+pub use crate::app::prelude::*;
+
+#[cfg(feature = "bevy_app2")]
+pub use crate::app::prelude::*;
+
+#[doc(hidden)]
 pub use crate::{
-    app::prelude::*, core::prelude::*, ecs::prelude::*, hierarchy::prelude::*, input::prelude::*,
+    core::prelude::*, ecs::prelude::*, hierarchy::prelude::*, input::prelude::*,
     log::prelude::*, math::prelude::*, reflect::prelude::*, time::prelude::*,
     transform::prelude::*, utils::prelude::*, window::prelude::*, DefaultPlugins, MinimalPlugins,
 };

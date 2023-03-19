@@ -59,6 +59,9 @@ dynamic_linking = ["bevy_dylib", "bevy_internal/dynamic_linking"]
 # Provides animation functionality
 bevy_animation = ["bevy_internal/bevy_animation"]
 
+# Provides experimental v2 App API
+bevy_app2 = ["bevy_internal/bevy_app2"]
+
 # Provides asset functionality
 bevy_asset = ["bevy_internal/bevy_asset"]
 
@@ -828,6 +831,18 @@ path = "examples/app/without_winit.rs"
 name = "Without Winit"
 description = "Create an application without winit (runs single time, no event loop)"
 category = "Application"
+wasm = false
+
+# Application 2
+[[example]]
+name = "demo"
+path = "examples/app2/demo.rs"
+required-features = ["bevy_app2"]
+
+[package.metadata.example.demo]
+name = "Demo"
+description = "Demo"
+category = "Application 2"
 wasm = false
 
 # Assets

@@ -14,7 +14,11 @@ pub mod a11y {
 
 pub mod app {
     //! Build bevy apps, create plugins, and read events.
+    #[cfg(not(feature = "bevy_app2"))]
     pub use bevy_app::*;
+
+    #[cfg(feature = "bevy_app2")]
+    pub use bevy_app2::*;
 }
 
 #[cfg(feature = "bevy_asset")]
