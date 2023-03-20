@@ -17,7 +17,7 @@ fn main() {
                 increment_input_counter
                     // The common_conditions module has a few useful run conditions
                     // for checking resources and states. These are included in the prelude.
-                    .load_if(resource_exists::<InputCounter>())
+                    .when(resource_exists::<InputCounter>())
                     // This is a custom run condition, defined using a system that returns
                     // a `bool` and which has read-only `SystemParam`s.
                     // Both run conditions must return `true` in order for the system to run.
@@ -29,7 +29,7 @@ fn main() {
                     // and is how the `&&` operator works in Rust (as well as most C-family languages).
                     // In this case, the short-circuiting behavior prevents the second run condition from
                     // panicking if the `InputCounter` resource has not been initialized.
-                    .load_if(resource_exists::<InputCounter>().and_then(
+                    .when(resource_exists::<InputCounter>().and_then(
                         // This is a custom run condition in the form of a closure.
                         // This is useful for small, simple run conditions you don't need to reuse.
                         // All the normal rules still apply: all parameters must be read only except for local parameters.
@@ -38,7 +38,7 @@ fn main() {
                 print_time_message
                     // This function returns a custom run condition, much like the common conditions module.
                     // It will only return true once 2 seconds have passed.
-                    .load_if(time_passed(2.0))
+                    .when(time_passed(2.0))
                     // You can use the `not` condition from the common_conditions module
                     // to inverse a run condition. In this case it will return true if
                     // less than 2.5 seconds have elapsed since the app started.

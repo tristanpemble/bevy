@@ -1,10 +1,10 @@
-
-
+use std::ops::Deref;
 use bevy_ecs::{
-    schedule::{ScheduleLabel},
+    schedule::ScheduleLabel,
     system::{Local, Resource},
     world::{Mut, World},
 };
+use bevy_ecs::schedule::BoxedScheduleLabel;
 
 /// The schedule that contains the app logic that is evaluated each tick of [`App::update()`].
 ///
@@ -147,6 +147,17 @@ impl Main {
                 let _ = world.try_run_schedule_ref(&**label);
             }
         });
+    }
+}
+
+#[derive(Resource)]
+pub struct RunSchedule(pub(crate) BoxedScheduleLabel);
+
+impl Deref for RunSchedule {
+    type Target = dyn ScheduleLabel;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
