@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use bevy_ecs::schedule::Schedule;
 use bevy_ecs::system::{BoxedSystem, In, IntoPipeSystem, IntoSystem, NonSendMut, Resource};
+use bevy_ecs::world::World;
 use bevy_utils::Instant;
 pub use builder::*;
 pub use config::*;
@@ -60,24 +61,21 @@ impl PluginStates {
     }
 }
 
-pub trait IntoPlugin<M>: Sized {
-    type Plugin: Plugin;
-
-    fn into_plugin(self) -> Self::Plugin;
+pub trait IntoPluginSystem<M>: Sized {
+    fn into_plugin(self) -> PluginSystem;
 }
 
-impl<T> IntoPlugin<()> for T where T: Plugin {
-    type Plugin = T;
-
-    fn into_plugin(self) -> Self::Plugin {
-        self
+impl<T> IntoPluginSystem<()> for T where T: Plugin {
+    fn into_plugin(self) -> PluginSystem {
+        PluginSystem::new(|world: &mut World| -> PluginState {
+            // todo: do something?
+            PluginState::Loaded
+        })
     }
 }
 
-impl<T, M> IntoPlugin<((), M)> for T where T: IntoSystem<(), PluginState, M> {
-    type Plugin = PluginSystem;
-
-    fn into_plugin(self) -> Self::Plugin {
+impl<T, M> IntoPluginSystem<((), M)> for T where T: IntoSystem<(), PluginState, M> {
+    fn into_plugin(self) -> PluginSystem {
         PluginSystem::new(self)
     }
 }

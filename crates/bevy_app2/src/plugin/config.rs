@@ -2,10 +2,11 @@ use bevy_ecs::all_tuples;
 use bevy_ecs::prelude::{Condition, Schedule, Schedules};
 use bevy_ecs::schedule::BoxedCondition;
 
-use crate::plugin::{IntoPlugin, Plugin};
+use crate::plugin::{IntoPluginSystem, Plugin};
+use crate::PluginSystem;
 
 pub struct PluginConfig {
-    pub(crate) plugin: Box<dyn Plugin>,
+    pub(crate) plugin: PluginSystem,
     pub(crate) conditions: Vec<BoxedCondition>,
 }
 
@@ -18,10 +19,8 @@ impl PluginConfigs {
     pub fn register(self, schedule: &mut Schedule) {
         match self {
             PluginConfigs::PluginConfig(config) => {
-                // config.plugin.register(schedule);
-                // ... todo
-                println!("REGISTER PLUGIN");
-            },
+                config.plugin.register(schedule);
+            }
             PluginConfigs::Configs(configs) => {
                 for config in configs {
                     config.register(schedule);
@@ -51,11 +50,11 @@ impl IntoPluginConfigs<()> for PluginConfigs {
 }
 
 impl<Marker, F> IntoPluginConfigs<Marker> for F
-    where F: IntoPlugin<Marker>
+    where F: IntoPluginSystem<Marker>
 {
     fn into_plugin_configs(self) -> PluginConfigs {
         PluginConfigs::PluginConfig(PluginConfig {
-            plugin: Box::new(IntoPlugin::into_plugin(self)),
+            plugin: self.into_plugin(),
             conditions: vec![],
         })
     }
