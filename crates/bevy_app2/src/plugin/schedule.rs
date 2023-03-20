@@ -1,11 +1,13 @@
 use bevy_ecs::schedule::ScheduleLabel;
 use bevy_ecs::world::World;
 
+use crate::PluginConfigs;
+
 #[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct PluginSchedule;
 
 impl PluginSchedule {
-    pub fn run(world: &mut World) {
+    pub fn run(world: &mut World, configs: PluginConfigs) {
         // let mut prev = 0;
         // loop {
         //     let mut pending = world.non_send_resource_mut::<PendingPlugins>();

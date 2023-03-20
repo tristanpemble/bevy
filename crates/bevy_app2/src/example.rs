@@ -35,11 +35,11 @@ fn some_system(_resource: Res<SomeResource>) {
 fn _example() {
     App::new()
         // These all work as usual
-        .add_plugins(MyPlugin)
         .add_resource(SomeResource)
         .add_systems(Update, some_system)
+        .add_plugins(MyPlugin)
 
-        // Now you can add them in groups
+        // Only, now you can add them in groups
         .add_plugins((MyPlugin, MyOtherPlugin))
 
         // Plugins can be configured, like systems

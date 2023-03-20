@@ -1,5 +1,5 @@
 use bevy_ecs::all_tuples;
-use bevy_ecs::prelude::Condition;
+use bevy_ecs::prelude::{Condition, Schedule, Schedules};
 use bevy_ecs::schedule::BoxedCondition;
 
 use crate::plugin::{IntoPlugin, Plugin};
@@ -14,7 +14,15 @@ pub enum PluginConfigs {
     Configs(Vec<PluginConfigs>),
 }
 
-pub trait IntoPluginConfigs<Marker> where Self: Sized {
+impl PluginConfigs {
+    pub fn register(self, schedule: &mut Schedule) {
+        todo!()
+    }
+}
+
+pub trait IntoPluginConfigs<Marker>
+    where Self: Sized
+{
     fn into_plugin_configs(self) -> PluginConfigs;
 
     fn when<M>(self, condition: impl Condition<M>) -> PluginConfigs {
@@ -27,7 +35,7 @@ pub trait IntoPluginConfigs<Marker> where Self: Sized {
 
 impl IntoPluginConfigs<()> for PluginConfigs {
     fn into_plugin_configs(self) -> PluginConfigs {
-        todo!()
+        self
     }
 }
 
@@ -35,7 +43,10 @@ impl<Marker, F> IntoPluginConfigs<Marker> for F
     where F: IntoPlugin<Marker>
 {
     fn into_plugin_configs(self) -> PluginConfigs {
-        todo!()
+        PluginConfigs::PluginConfig(PluginConfig {
+            plugin: Box::new(IntoPlugin::into_plugin(self)),
+            conditions: vec![],
+        })
     }
 }
 

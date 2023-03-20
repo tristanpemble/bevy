@@ -1,10 +1,13 @@
 use std::ops::Deref;
+
 use bevy_ecs::{
     schedule::ScheduleLabel,
     system::{Local, Resource},
     world::{Mut, World},
 };
-use bevy_ecs::schedule::BoxedScheduleLabel;
+use bevy_ecs::schedule::{BoxedScheduleLabel, ExecutorKind, Schedule};
+
+use crate::{App, Plugin, PluginBuilder};
 
 /// The schedule that contains the app logic that is evaluated each tick of [`App::update()`].
 ///
@@ -151,9 +154,15 @@ impl Main {
 }
 
 #[derive(Resource)]
-pub struct RunSchedule(pub(crate) BoxedScheduleLabel);
+pub struct AppSchedule(pub BoxedScheduleLabel);
 
-impl Deref for RunSchedule {
+impl Default for AppSchedule {
+    fn default() -> Self {
+        AppSchedule(Box::new(Main))
+    }
+}
+
+impl Deref for AppSchedule {
     type Target = dyn ScheduleLabel;
 
     fn deref(&self) -> &Self::Target {
@@ -164,7 +173,20 @@ impl Deref for RunSchedule {
 /// Initializes the [`Main`] schedule, sub schedules,  and resources for a given [`App`].
 pub struct MainSchedulePlugin;
 
-// impl Plugin for MainSchedulePlugin {
+impl Plugin for MainSchedulePlugin {
+    fn build(&self, app: &mut PluginBuilder) {
+        // simple "facilitator" schedules benefit from simpler single threaded scheduling
+        let mut main_schedule = Schedule::new();
+        main_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
+        let mut fixed_update_loop_schedule = Schedule::new();
+        fixed_update_loop_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
+
+        app.add_schedule(Main, main_schedule)
+           .add_schedule(RunFixedUpdateLoop, fixed_update_loop_schedule)
+           .init_resource::<MainScheduleOrder>()
+           .add_systems(Main, Main::run_main);
+    }
+
 //     fn build(&self, app: &mut App) {
 //         // simple "facilitator" schedules benefit from simpler single threaded scheduling
 //         let mut main_schedule = Schedule::new();
@@ -177,4 +199,4 @@ pub struct MainSchedulePlugin;
 //             .init_resource::<MainScheduleOrder>()
 //             .add_systems(Main, Main::run_main);
 //     }
-// }
+}

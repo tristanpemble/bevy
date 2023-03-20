@@ -17,12 +17,12 @@ mod registry;
 mod helper;
 mod schedule;
 
-pub trait Plugin {
+pub trait Plugin: 'static {
     fn build(&self, build: &mut PluginBuilder);
     fn register(self, schedule: &mut Schedule) where Self: Sized {
         let mut builder = PluginBuilder::new();
         self.build(&mut builder);
-        schedule.add_systems(builder.systems);
+        // schedule.add_systems();
     }
 }
 
@@ -32,7 +32,7 @@ pub enum PluginState {
     Failed(Option<Box<dyn Error>>),
 }
 
-pub trait IntoPlugin<M> {
+pub trait IntoPlugin<M>: Sized {
     type Plugin: Plugin;
 
     fn into_plugin(self) -> Self::Plugin;
