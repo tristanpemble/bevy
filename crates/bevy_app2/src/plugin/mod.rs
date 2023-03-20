@@ -1,54 +1,73 @@
-use bevy_ecs::prelude::{IntoSystemConfigs, Resource, Schedule, Schedules, World};
-use bevy_ecs::schedule::{ScheduleLabel, SystemConfig, SystemConfigs};
-use bevy_ecs::system::IntoSystem;
-use schedule::{PluginInner};
+use bevy_ecs::schedule::{Schedule};
+use bevy_ecs::system::{BoxedSystem, In, IntoPipeSystem, IntoSystem, NonSendMut};
+pub use builder::*;
+pub use config::*;
+pub use helper::*;
 
-use crate::App;
-use crate::prelude::{PendingPlugins, schedule};
 
-pub(crate) mod helpers;
-pub(crate) mod schedule;
+use crate::plugin::registry::PluginRegistry;
+
+mod builder;
+mod config;
+mod registry;
+mod helper;
+
+pub type PluginResult = Result<(), PluginError>;
+pub enum PluginError {
+    Retry
+}
 
 pub trait Plugin {
-    fn config(&self, config: &mut impl PluginConfig);
+    fn build(&self, build: &mut PluginBuilder);
+    fn register(self, schedule: &mut Schedule) where Self: Sized {
+        let mut builder = PluginBuilder::new();
+        self.build(&mut builder);
+        schedule.add_systems(builder.systems);
+    }
 }
 
-pub trait PluginConfig {
-    fn add<M>(&mut self, plugin: impl IntoSystemConfigs<M>) -> &mut Self;
+pub trait IntoPlugin<M> {
+    type Plugin: Plugin;
 
-    // fn add_plugin(&mut self, plugin: impl Plugin) -> &mut Self {
-    //     self.add(helpers::plugin(plugin))
-    // }
+    fn into_plugin(self) -> Self::Plugin;
 }
 
-#[derive(Resource, Default)]
-pub struct PluginCounter(pub(crate) usize);
+impl<T> IntoPlugin<()> for T where T: Plugin {
+    type Plugin = T;
 
-impl PluginConfig for World {
-    fn add<M>(&mut self, plugin: impl IntoSystemConfigs<M>) -> &mut Self {
-        self.init_resource::<Schedules>();
-        self.init_non_send_resource::<PendingPlugins>();
-        let mut schedules = self.resource_mut::<Schedules>();
-        if let Some(schedule) = schedules.get_mut(&PluginInner) {
-            schedule.add_systems(plugin);
-        } else {
-            let mut new_schedule = Schedule::new();
-            new_schedule.add_systems(plugin);
-            schedules.insert(PluginInner, new_schedule);
+    fn into_plugin(self) -> Self::Plugin {
+        self
+    }
+}
+
+impl<T, M> IntoPlugin<((), M)> for T where T: IntoSystem<(), PluginResult, M> {
+    type Plugin = SystemPlugin;
+
+    fn into_plugin(self) -> Self::Plugin {
+        SystemPlugin::new(self)
+    }
+}
+
+pub struct SystemPlugin {
+    system: BoxedSystem,
+}
+
+impl SystemPlugin {
+    pub fn new<M>(system: impl IntoSystem<(), PluginResult, M>) -> Self {
+        Self {
+            system: Box::new(IntoSystem::into_system(system).pipe(handle_plugin_result)),
+            // system: todo!()
         }
-        self
     }
 }
 
-impl PluginConfig for App {
-    fn add<M>(&mut self, plugin: impl IntoSystemConfigs<M>) -> &mut Self {
-        self.world.add(plugin);
-        self
+impl Plugin for SystemPlugin {
+    fn build(&self, _app: &mut PluginBuilder) {}
+    fn register(self, schedule: &mut Schedule) {
+        schedule.add_systems(self.system);
     }
 }
 
-impl PluginCounter {
-    pub fn incr(&mut self) {
-        self.0 += 1;
-    }
+fn handle_plugin_result(In(_result): In<PluginResult>, _registry: NonSendMut<PluginRegistry>) {
+    todo!()
 }

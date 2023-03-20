@@ -1,13 +1,10 @@
+
+
 use bevy_ecs::{
-    schedule::{ExecutorKind, Schedule, ScheduleLabel},
+    schedule::{ScheduleLabel},
     system::{Local, Resource},
     world::{Mut, World},
 };
-use bevy_ecs::schedule::BoxedScheduleLabel;
-
-use crate::{App, Plugin};
-use crate::plugin::helpers::{resource, schedule, systems};
-use crate::plugin::PluginConfig;
 
 /// The schedule that contains the app logic that is evaluated each tick of [`App::update()`].
 ///
@@ -156,28 +153,17 @@ impl Main {
 /// Initializes the [`Main`] schedule, sub schedules,  and resources for a given [`App`].
 pub struct MainSchedulePlugin;
 
-impl Plugin for MainSchedulePlugin {
-    fn config(&self, mut config: &mut impl PluginConfig) {
-        // simple "facilitator" schedules benefit from simpler single threaded scheduling
-        let mut main_schedule = Schedule::new();
-        main_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
-
-        let mut fixed_update_loop_schedule = Schedule::new();
-        fixed_update_loop_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
-
-        config.add(schedule(Main, main_schedule))
-              .add(schedule(RunFixedUpdateLoop, fixed_update_loop_schedule))
-              .add(resource(MainSchedule(Box::new(Main))))
-              .add(resource(MainScheduleOrder::default()))
-              .add(systems(Main, Main::run_main));
-    }
-}
-
-#[derive(Resource)]
-pub struct MainSchedule(pub BoxedScheduleLabel);
-
-impl Default for MainSchedule {
-    fn default() -> Self {
-        Self(Box::new(Main))
-    }
-}
+// impl Plugin for MainSchedulePlugin {
+//     fn build(&self, app: &mut App) {
+//         // simple "facilitator" schedules benefit from simpler single threaded scheduling
+//         let mut main_schedule = Schedule::new();
+//         main_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
+//         let mut fixed_update_loop_schedule = Schedule::new();
+//         fixed_update_loop_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
+//
+//         app.add_schedule(Main, main_schedule)
+//             .add_schedule(RunFixedUpdateLoop, fixed_update_loop_schedule)
+//             .init_resource::<MainScheduleOrder>()
+//             .add_systems(Main, Main::run_main);
+//     }
+// }
