@@ -4,8 +4,9 @@ use bevy_ecs::schedule::{ScheduleLabel, SystemConfigs};
 use crate::{add_resource, add_schedule, add_systems, init_resource, init_schedule, PluginConfigs};
 use crate::plugin::IntoPluginConfigs;
 
+#[derive(Default)]
 pub struct PluginBuilder {
-    pub plugins: Vec<PluginConfigs>,
+    plugins: Vec<PluginConfigs>,
 }
 
 impl PluginBuilder {
@@ -29,8 +30,7 @@ impl PluginBuilder {
         label: impl ScheduleLabel,
         schedule: Schedule,
     ) -> &mut Self {
-        self.add_plugins(add_schedule(label, schedule));
-        self
+        self.add_plugins(add_schedule(label, schedule))
     }
 
     pub fn add_systems<M>(
@@ -41,14 +41,19 @@ impl PluginBuilder {
         self.add_plugins(add_systems(schedule, systems))
     }
 
-    pub fn init_resource<T: Resource + Default>(&mut self, ) -> &mut Self {
+    pub fn init_resource<T: Resource + Default>(&mut self) -> &mut Self {
         self.add_plugins(init_resource::<T>())
     }
 
-    pub fn init_schedule<M>(
-        &mut self,
-        label: impl ScheduleLabel,
-    ) -> &mut Self {
+    pub fn init_schedule(&mut self, label: impl ScheduleLabel) -> &mut Self {
         self.add_plugins(init_schedule(label))
+    }
+}
+
+pub struct PluginBuilderMarker;
+
+impl<M> IntoPluginConfigs<(PluginBuilderMarker, M)> for PluginBuilder {
+    fn into_plugin_configs(self) -> PluginConfigs {
+        PluginConfigs::Configs(self.plugins)
     }
 }

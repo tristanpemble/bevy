@@ -17,19 +17,20 @@ pub mod prelude {
 
 pub struct App {
     world: World,
-    plugins: Vec<PluginConfigs>,
+    builder: PluginBuilder,
     runner: Box<dyn Fn(World) + Send>,
 }
 
 // App running
 impl App {
     pub fn new() -> Self {
+        let mut builder = PluginBuilder::new();
+        builder.init_resource::<AppSchedule>();
+
         Self {
             world: World::new(),
             runner: Box::new(run_once),
-            plugins: vec![
-                init_resource::<AppSchedule>().into_plugin_configs()
-            ],
+            builder,
         }
     }
 
@@ -40,7 +41,7 @@ impl App {
         schedule.set_executor_kind(ExecutorKind::MultiThreaded);
         schedule.run(&mut app.world);
 
-        (app.runner)(app.world);
+        // (app.runner)(app.world);
     }
 }
 
@@ -54,12 +55,13 @@ impl App {
     }
 
     pub fn add_plugins<M>(&mut self, plugin: impl IntoPluginConfigs<M>) -> &mut Self {
-        self.plugins.push(plugin.into_plugin_configs());
+        self.builder.add_plugins(plugin);
         self
     }
 
     pub fn add_resource<T: Resource>(&mut self, value: T) -> &mut Self {
-        self.add_plugins(add_resource(value))
+        self.builder.add_resource(value);
+        self
     }
 
     pub fn add_schedule<M>(
@@ -67,7 +69,7 @@ impl App {
         label: impl ScheduleLabel,
         schedule: Schedule,
     ) -> &mut Self {
-        self.add_plugins(add_schedule(label, schedule));
+        self.builder.add_schedule(label, schedule);
         self
     }
 
@@ -76,7 +78,8 @@ impl App {
         schedule: impl ScheduleLabel,
         systems: impl IntoSystemConfigs<M> + Send + Sync + 'static,
     ) -> &mut Self {
-        self.add_plugins(add_systems(schedule, systems))
+        self.builder.add_systems(schedule, systems);
+        self
     }
 }
 
