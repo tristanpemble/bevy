@@ -39,6 +39,7 @@ impl App {
 
         let mut schedule = Schedule::new();
         schedule.set_executor_kind(ExecutorKind::MultiThreaded);
+        app.builder.into_plugin_configs().register(&mut schedule);
         schedule.run(&mut app.world);
 
         // (app.runner)(app.world);

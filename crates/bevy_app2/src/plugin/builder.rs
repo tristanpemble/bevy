@@ -52,7 +52,7 @@ impl PluginBuilder {
 
 pub struct PluginBuilderMarker;
 
-impl<M> IntoPluginConfigs<(PluginBuilderMarker, M)> for PluginBuilder {
+impl IntoPluginConfigs<PluginBuilderMarker> for PluginBuilder {
     fn into_plugin_configs(self) -> PluginConfigs {
         PluginConfigs::Configs(self.plugins)
     }
