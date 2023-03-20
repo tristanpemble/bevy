@@ -16,7 +16,18 @@ pub enum PluginConfigs {
 
 impl PluginConfigs {
     pub fn register(self, schedule: &mut Schedule) {
-        todo!()
+        match self {
+            PluginConfigs::PluginConfig(config) => {
+                // config.plugin.register(schedule);
+                // ... todo
+                println!("REGISTER PLUGIN");
+            },
+            PluginConfigs::Configs(configs) => {
+                for config in configs {
+                    config.register(schedule);
+                }
+            }
+        }
     }
 }
 

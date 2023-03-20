@@ -1,26 +1,19 @@
 use bevy_ecs::schedule::ScheduleLabel;
 use bevy_ecs::world::World;
 
-use crate::PluginConfigs;
+use crate::{PluginConfigs, PluginState, PluginStates};
 
 #[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct PluginSchedule;
 
 impl PluginSchedule {
-    pub fn run(world: &mut World, configs: PluginConfigs) {
-        // let mut prev = 0;
-        // loop {
-        //     let mut pending = world.non_send_resource_mut::<PendingPlugins>();
-        //     let mut pending = std::mem::take(&mut pending.inner);
-        //     for plugin in pending.drain(..) {
-        //         plugin(world);
-        //     }
-        //     world.try_run_schedule_ref(&PluginInner);
-        //     prev = match world.resource::<PluginCounter>().0 {
-        //         current if prev == current => break,
-        //         current => current,
-        //     };
-        // };
+    pub fn run(world: &mut World) {
+        world.init_resource::<PluginStates>();
+        // todo: make not infinite
+        while world.resource::<PluginStates>().count(PluginState::Idle) > 0 {
+            world.run_schedule_ref(&PluginInner);
+        };
+        world.remove_resource::<PluginStates>();
     }
 }
 

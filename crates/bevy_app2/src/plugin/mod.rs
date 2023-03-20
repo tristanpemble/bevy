@@ -2,7 +2,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use bevy_ecs::schedule::Schedule;
-use bevy_ecs::system::{BoxedSystem, In, IntoPipeSystem, IntoSystem, NonSendMut};
+use bevy_ecs::system::{BoxedSystem, In, IntoPipeSystem, IntoSystem, NonSendMut, Resource};
 use bevy_utils::Instant;
 pub use builder::*;
 pub use config::*;
@@ -22,14 +22,42 @@ pub trait Plugin: 'static {
     fn register(self, schedule: &mut Schedule) where Self: Sized {
         let mut builder = PluginBuilder::new();
         self.build(&mut builder);
-        // schedule.add_systems();
+        builder.into_plugin_configs().register(schedule);
     }
 }
 
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub enum PluginState {
     Idle,
     Loaded,
-    Failed(Option<Box<dyn Error>>),
+    Failed,
+}
+
+#[derive(Resource, Default)]
+pub struct PluginStates {
+    step: u64,
+    max_steps: u64,
+    states: Vec<PluginState>,
+}
+
+impl PluginStates {
+    fn set(&mut self, index: Option<usize>, state: PluginState) -> usize {
+        match index {
+            Some(index) => {
+                self.states[index] = state;
+                index
+            }
+            None => {
+                let index = self.states.len();
+                self.states[index] = state;
+                index
+            }
+        }
+    }
+
+    fn count(&self, state: PluginState) -> usize {
+        self.states.iter().filter(|v| **v == state).count()
+    }
 }
 
 pub trait IntoPlugin<M>: Sized {
@@ -62,7 +90,6 @@ impl PluginSystem {
     pub fn new<M>(system: impl IntoSystem<(), PluginState, M>) -> Self {
         Self {
             system: Box::new(IntoSystem::into_system(system).pipe(handle_plugin_result)),
-            // system: todo!()
         }
     }
 }

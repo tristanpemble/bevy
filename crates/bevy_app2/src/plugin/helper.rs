@@ -16,10 +16,10 @@ pub fn init_schedule(label: impl ScheduleLabel) -> PluginSystem {
     let mut cell = Some(label);
     PluginSystem::new(move |mut schedules: ResMut<Schedules>| -> PluginState {
         let Some(label) = cell.take() else {
-            return PluginState::Failed(None);
+            return PluginState::Failed;
         };
         if let None = schedules.get(&label) {
-            return PluginState::Failed(None);
+            return PluginState::Failed;
         };
         schedules.insert(label, Schedule::new());
         PluginState::Loaded
@@ -30,7 +30,7 @@ pub fn add_resource<T: Resource>(value: T) -> PluginSystem {
     let mut cell = Some(value);
     PluginSystem::new(move |world: &mut World| -> PluginState {
         let Some(value) = cell.take() else {
-            return PluginState::Failed(None);
+            return PluginState::Failed;
         };
         world.insert_resource(value);
         PluginState::Loaded
@@ -41,10 +41,10 @@ pub fn add_schedule(label: impl ScheduleLabel, schedule: Schedule) -> PluginSyst
     let mut cell = Some((label, schedule));
     PluginSystem::new(move |mut schedules: ResMut<Schedules>| -> PluginState {
         let Some((label, schedule)) = cell.take() else {
-            return PluginState::Failed(None);
+            return PluginState::Failed;
         };
         if let Some(_) = schedules.get(&label) {
-            return PluginState::Failed(None);
+            return PluginState::Failed;
         };
         schedules.insert(label, schedule);
         PluginState::Loaded
@@ -58,10 +58,10 @@ pub fn add_systems<M>(
     let mut cell = Some((schedule, systems));
     PluginSystem::new(move |mut schedules: ResMut<Schedules>| -> PluginState {
         let Some((label, systems)) = cell.take() else {
-            return PluginState::Failed(None);
+            return PluginState::Failed;
         };
         if let None = schedules.get(&label) {
-            return PluginState::Failed(None);
+            return PluginState::Failed;
         };
         schedules.get_mut(&label).unwrap().add_systems(systems);
         PluginState::Loaded
