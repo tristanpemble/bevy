@@ -17,13 +17,6 @@ pub enum PluginConfigs {
 pub trait IntoPluginConfigs<Marker> where Self: Sized {
     fn into_plugin_configs(self) -> PluginConfigs;
 
-    fn before<T: Plugin>(self) -> PluginConfigs {
-        self.into_plugin_configs().before::<T>()
-    }
-    fn after<T: Plugin>(self) -> PluginConfigs {
-        self.into_plugin_configs().after::<T>()
-    }
-
     fn when<M>(self, condition: impl Condition<M>) -> PluginConfigs {
         self.into_plugin_configs().when(condition)
     }

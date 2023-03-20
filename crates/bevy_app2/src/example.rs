@@ -35,20 +35,27 @@ fn some_system(_resource: Res<SomeResource>) {
 fn _example() {
     App::new()
         // These all work as usual
-        .add_plugin(MyPlugin)
+        .add_plugins(MyPlugin)
         .add_resource(SomeResource)
         .add_systems(Update, some_system)
 
-        // Plugins can be configured, like systems
-        .add_plugin(MyOtherPlugin.before::<MyPlugin>())
-        .add_plugin(MyOtherPlugin.when(resource_exists::<SomeResource>()))
-        .add_plugin(MyOtherPlugin.optionally_when(resource_exists::<SomeResource>()))
+        // Now you can add them in groups
+        .add_plugins((MyPlugin, MyOtherPlugin))
 
-        // Anonymous plugins can be created from any system that returns a PluginState
-        .add_plugin(|_world: &mut World| -> PluginState {
+        // Plugins can be configured, like systems
+        .add_plugins(MyOtherPlugin.when(resource_exists::<SomeResource>()))
+        .add_plugins(MyOtherPlugin.optionally_when(resource_exists::<SomeResource>()))
+        .add_plugins((
+            MyPlugin,
+            MyOtherPlugin,
+        ).when(resource_exists::<SomeResource>()))
+
+        // Anonymous plugins can be created from any system that returns a PluginState. This is
+        // useful for the situations where you used to need access to the App's world.
+        .add_plugins(|world: &mut World| -> PluginState {
             PluginState::Loaded
         })
-        .add_plugin(|some_resource: Option<ResMut<SomeResource>>| -> PluginState {
+        .add_plugins(|some_resource: Option<ResMut<SomeResource>>| -> PluginState {
             match some_resource {
                 Some(some_resource) => {
                     some_resource.do_something();
@@ -59,7 +66,7 @@ fn _example() {
         })
 
         // [App::add_resource] and [App::add_systems] are just wrappers around anonymous plugins
-        .add_plugin(add_resource(SomeResource))
-        .add_plugin(add_resource(SomeResource).when(resource_exists::<SomeOtherResource>()))
+        .add_plugins(add_resource(SomeResource))
+        .add_plugins(add_resource(SomeResource).when(resource_exists::<SomeOtherResource>()))
     ;
 }

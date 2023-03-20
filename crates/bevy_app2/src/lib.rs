@@ -39,13 +39,13 @@ impl App {
 
 // Plugin building
 impl App {
-    fn add_plugin<M>(&mut self, plugin: impl IntoPluginConfigs<M>) -> &mut Self {
+    fn add_plugins<M>(&mut self, plugin: impl IntoPluginConfigs<M>) -> &mut Self {
         self.plugins.push(plugin.into_plugin_configs());
         self
     }
 
     fn add_resource<T: Resource>(&mut self, value: T) -> &mut Self {
-        self.add_plugin(add_resource(value))
+        self.add_plugins(add_resource(value))
     }
 
     fn add_systems<M>(
@@ -53,7 +53,7 @@ impl App {
         schedule: impl ScheduleLabel,
         systems: impl IntoSystemConfigs<M>,
     ) -> &mut Self {
-        self.add_plugin(add_systems(schedule, systems))
+        self.add_plugins(add_systems(schedule, systems))
     }
 }
 
