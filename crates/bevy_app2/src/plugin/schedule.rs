@@ -9,9 +9,11 @@ pub(crate) struct PluginSchedule;
 impl PluginSchedule {
     pub fn run(world: &mut World) {
         world.init_resource::<PluginStates>();
-        // todo: make not infinite
-        while world.resource::<PluginStates>().count(PluginState::Idle) > 0 {
+        loop {
             world.run_schedule_ref(&PluginInner);
+            if world.resource::<PluginStates>().count(PluginState::Idle) == 0 {
+                break;
+            }
         };
         world.remove_resource::<PluginStates>();
     }

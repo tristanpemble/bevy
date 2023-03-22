@@ -36,8 +36,8 @@ impl App {
 
     pub fn run(&mut self) {
         let mut app = std::mem::replace(self, App::new());
-
         let mut configs = app.builder.into_plugin_configs();
+
         let mut inner = Schedule::new();
         inner.set_executor_kind(ExecutorKind::MultiThreaded);
         configs.register(&mut inner);
@@ -45,8 +45,11 @@ impl App {
         let mut outer = Schedule::new();
         outer.add_systems(PluginSchedule::run);
 
+        app.world.init_resource::<Schedules>();
         app.world.add_schedule(outer, PluginSchedule);
         app.world.add_schedule(inner, PluginInner);
+
+        app.world.run_schedule_ref(&PluginSchedule);
 
         // (app.runner)(app.world);
     }

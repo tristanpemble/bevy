@@ -183,20 +183,8 @@ impl Plugin for MainSchedulePlugin {
 
         config.add_schedule(Main, main_schedule)
               .add_schedule(RunFixedUpdateLoop, fixed_update_loop_schedule)
+              .add_resource(AppSchedule(Box::new(Main)))
               .init_resource::<MainScheduleOrder>()
               .add_systems(Main, Main::run_main);
     }
-
-//     fn build(&self, app: &mut App) {
-//         // simple "facilitator" schedules benefit from simpler single threaded scheduling
-//         let mut main_schedule = Schedule::new();
-//         main_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
-//         let mut fixed_update_loop_schedule = Schedule::new();
-//         fixed_update_loop_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
-//
-//         app.add_schedule(Main, main_schedule)
-//             .add_schedule(RunFixedUpdateLoop, fixed_update_loop_schedule)
-//             .init_resource::<MainScheduleOrder>()
-//             .add_systems(Main, Main::run_main);
-//     }
 }

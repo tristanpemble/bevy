@@ -2,7 +2,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use bevy_ecs::schedule::Schedule;
-use bevy_ecs::system::{BoxedSystem, In, IntoPipeSystem, IntoSystem, NonSendMut, Resource};
+use bevy_ecs::system::{BoxedSystem, In, IntoPipeSystem, IntoSystem, Local, NonSendMut, ResMut, Resource};
 use bevy_ecs::world::World;
 use bevy_utils::Instant;
 pub use builder::*;
@@ -50,7 +50,7 @@ impl PluginStates {
             }
             None => {
                 let index = self.states.len();
-                self.states[index] = state;
+                self.states.push(state);
                 index
             }
         }
@@ -68,7 +68,7 @@ pub trait IntoPluginSystem<M>: Sized {
 impl<T> IntoPluginSystem<()> for T where T: Plugin {
     fn into_plugin(self) -> PluginSystem {
         PluginSystem::new(|world: &mut World| -> PluginState {
-            // todo: do something?
+            todo!();
             PluginState::Loaded
         })
     }
@@ -99,6 +99,6 @@ impl Plugin for PluginSystem {
     }
 }
 
-fn handle_plugin_result(In(_result): In<PluginState>, _registry: NonSendMut<PluginRegistry>) {
-    todo!()
+fn handle_plugin_result(In(state): In<PluginState>, mut idx: Local<Option<usize>>, mut registry: ResMut<PluginStates>) {
+    *idx = Some(registry.set(*idx, state))
 }
